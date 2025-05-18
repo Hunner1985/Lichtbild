@@ -1,1 +1,273 @@
-templates
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wecker Einstellungen</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            background-color: #fff;
+        }
+        input {
+            font-size: 22px;
+        }
+        span {
+            font-size: 28px;
+        }
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        .tab {
+            padding: 10px 20px;
+            background: #f5cb7d;
+            margin-right: 5px;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background: #f28a56;
+            border: 1px solid #ccc;
+            border-bottom: none;
+        }
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .error-message {
+            color: red;
+        }
+        .success-message {
+            color: green;
+        }
+        /* Slider Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            vertical-align: middle;
+            margin-right: 10px; /* Abstand zwischen Slider und Text */
+        }
+
+        /* Slider Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            vertical-align: middle;
+            margin-right: 10px; /* Abstand zwischen Slider und Text */
+        }
+
+        /* Hide the default HTML checkbox but ensure it doesn't affect layout */
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            margin-left: 10px; /* Verschiebt das Input-Element nach rechts */
+        }
+
+        /* The slider */
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Slider-Form */
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="tabs" style="font-size: small;">
+    <div class="tab active" onclick="showTab('wecker')">Weckereinst.</div>
+    <div class="tab" onclick="showTab('licht')">Lichteinst.</div>
+    <div class="tab" onclick="showTab('sound')">Soundeinst.</div>
+    <div class="tab" onclick="showTab('sonstiges')">Sonstiges</div>
+</div>
+
+<form id="settingsForm" method="POST" action="/">
+    <div id="wecker" class="tab-content active">
+        <h2>Weckereinstellungen</h2>
+        <label for="weckzeit">Weckzeit:</label>
+        <input type="time" name="weckzeit" value="{{ weckzeit }}"><br>
+        <br>
+        <div class="label-container"></div>
+            <label for="weckstatus">Weckerstatus:</label>
+            <label class="switch">
+                <input type="checkbox" id="weckstatus" name="weckstatus" {% if weckstatus == '1' %}checked{% endif %} onchange="toggleWeckstatusText()">
+                <span class="slider round"></span>
+            </label>
+            <span id="statusText">{% if weckstatus == '1' %}aktiv{% else %}inaktiv{% endif %}</span>
+        </div>
+    </div>
+
+    <div id="licht" class="tab-content">
+        <h2>Lichteinstellungen</h2>
+        <label for="helligkeit_min">Helligkeit Min:</label>
+        <input type="number" name="helligkeit_min" value="{{ helligkeit_min }}" min="0" max="{{ helligkeit_max - 1 }}" id="helligkeit_min"><br>
+        <span id="error_helligkeit_min" class="error-message"></span>
+        <br>
+        <label for="helligkeit_max">Helligkeit Max:</label>
+        <input type="number" name="helligkeit_max" value="{{ helligkeit_max }}" min="{{ helligkeit_min + 1 }}" max="100" id="helligkeit_max"><br>
+        <span id="error_helligkeit_max" class="error-message"></span>
+        <br>
+        <label for="delta_licht">Delta Licht:</label>
+        <input type="number" name="delta_licht" value="{{ delta_licht }}" min="1" max="30"><br>
+    </div>
+
+    <div id="sound" class="tab-content">
+        <h2>Soundeinstellungen</h2>
+        <label for="anfangslautst">Anfangslautstärke:</label>
+        <input type="number" name="anfangslautst" value="{{ anfangslautst }}" min="0" max="{{ endlautst - 1 }}" id="anfangslautst"><br>
+        <span id="error_anfangslautst" class="error-message"></span>
+        <br>
+        <label for="endlautst">Endlautstärke:</label>
+        <input type="number" name="endlautst" value="{{ endlautst }}" min="{{ anfangslautst + 1 }}" max="100" id="endlautst"><br>
+        <span id="error_endlautst" class="error-message"></span>
+        <br>
+        <label for="delta_audio">Delta Audio:</label>
+        <input type="number" name="delta_audio" value="{{ delta_audio }}" min="1" max="30"><br>
+    </div>
+
+    <div id="sonstiges" class="tab-content">
+        <h2>Sonstige Einstellungen</h2>
+        <label for="displayhelligkeit">Displayhelligkeit:</label>
+        <input type="number" name="displayhelligkeit" value="{{ displayhelligkeit}}" min="0" max="100"><br>
+        <br>
+        <div class="label-container"></div>
+            <label for="logger">Loggergrafik anzeigen:</label>
+            <label class="switch">
+                <input type="checkbox" id="logger" name="logger" {% if logger == '1'%}checked{% endif %} onchange="safeLoggerstatus()">
+                <span class="slider round"></span>
+            </label>
+            <img src="{{ url_for('zeige_bild') }}" alt="Logger-Grafik" style="max-width: 100%;">
+        </div>
+    <br>
+    <br>
+    <button type="button" style="background-color: #f5cb7d;" onclick="validateAndSubmit('wecker')">Speichern</button>
+</form>
+
+<!-- Meldung wird unterhalb des Formulars angezeigt -->
+<div id="message" style="margin-top: 20px;"></div>
+
+<script>
+    function showTab(tabName) {
+        // Alle Tabs ausblenden
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Alle Tab-Buttons zurücksetzen
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Den aktuellen Tab anzeigen
+        document.getElementById(tabName).classList.add('active');
+        document.querySelector(`.tab[onclick="showTab('${tabName}')"]`).classList.add('active');
+    }
+
+    function validateAndSubmit(activeTab) {
+    const messageDiv = document.getElementById('message');
+    let hasError = false;
+
+    // Reset error messages
+    const errorFields = document.querySelectorAll('.error-message');
+    errorFields.forEach(field => field.textContent = '');
+
+    messageDiv.textContent = '';
+
+    // Validation based on the active tab
+    if (activeTab === 'licht') {
+        const helligkeitMin = document.getElementById('helligkeit_min');
+        const helligkeitMax = document.getElementById('helligkeit_max');
+        if (parseInt(helligkeitMin.value) >= parseInt(helligkeitMax.value)) {
+            document.getElementById('error_helligkeit_min').textContent = "Helligkeit Min muss kleiner sein als Helligkeit Max.";
+            hasError = true;
+        }
+    }
+
+    if (activeTab === 'sound') {
+        const anfangsLautst = document.getElementById('anfangslautst');
+        const endLautst = document.getElementById('endlautst');
+        if (parseInt(anfangsLautst.value) >= parseInt(endLautst.value)) {
+            document.getElementById('error_anfangslautst').textContent = "Anfangslautstärke muss kleiner sein als Endlautstärke.";
+            hasError = true;
+        }
+    }
+
+    if (activeTab === 'sonstiges') {
+        const displayhelligkeit = document.getElementById('displayhelligkeit');
+        const slider = document.getElementById('logger');
+    }
+    // Display error or success message on the active tab
+    if (hasError) {
+        messageDiv.innerHTML = "<p class='error-message'>Fehler: Überprüfen Sie die markierten Felder.</p>";
+    } else {
+        messageDiv.innerHTML = `<p class='success-message'>Einstellungen im Tab "${activeTab}" wurden erfolgreich gespeichert!</p>`;
+
+        // Sende das Formular nur, wenn keine Fehler vorliegen
+        const form = document.getElementById('settingsForm');
+        form.submit();  // Formular absenden
+    }
+}
+function toggleWeckstatusText() {
+    const slider = document.getElementById('weckstatus');
+    const statusText = document.getElementById('statusText');
+
+    if (slider.checked) {
+        statusText.textContent = 'aktiv';
+    } else {
+        statusText.textContent = 'inaktiv';
+    }
+}
+
+
+</script>
+
+</body>
+</html>
